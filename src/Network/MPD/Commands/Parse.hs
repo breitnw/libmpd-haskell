@@ -23,6 +23,15 @@ import           Network.MPD.Util
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
+-- | Builds an 'AlbumArtChunk' instance from an assoc. list.
+parseAlbumArtChunk :: [ResponseEntry] -> Either String AlbumArtChunk
+parseAlbumArtChunk = foldM f def . toAssocList
+    where
+        f a ("size", x)      = return $ parse parseNum
+                               (\x' -> a {aacSize = x'}) a x
+        f a ("binary", x)    = return $ a {aacBytes = x}
+        f _ x                = Left $ show x
+
 -- | Builds a 'Count' instance from an assoc. list.
 parseCount :: [ResponseEntry] -> Either String Count
 parseCount = foldM f def . toAssocList

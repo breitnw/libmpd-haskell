@@ -5,6 +5,8 @@ module Unparse (Unparse(..)) where
 import qualified Data.Map as M
 import           Network.MPD.Commands.Types
 import           Network.MPD.Util
+import qualified Data.ByteString.UTF8 as UTF8
+import qualified Data.ByteString as B
 
 class Unparse parsed where
     unparse :: parsed -> String
@@ -12,6 +14,13 @@ class Unparse parsed where
 instance Unparse a => Unparse (Maybe a) where
     unparse Nothing  = ""
     unparse (Just x) = unparse x
+
+instance Unparse AlbumArtChunk where
+    unparse aac = unlines
+                  [ "size: "   ++ show (aacSize aac)
+                  , "binary: " ++ show (B.length (aacBytes aac))
+                  , UTF8.toString $ aacBytes aac
+                  ]
 
 instance Unparse Count where
     unparse x = unlines

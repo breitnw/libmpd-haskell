@@ -45,3 +45,9 @@ spec = do
     describe "ping" $ do
         it "sends a ping" $ do
             ping `with` [("ping", Right "OK")] `shouldBe` Right ()
+
+    describe "binaryLimit" $ do
+        it "sends a binary limit" $ do
+            binaryLimit 8
+                `with` [("binarylimit 8", Right "OK")]
+                `shouldBe` Right ()

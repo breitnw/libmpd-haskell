@@ -13,7 +13,8 @@ The music database.
 -}
 
 module Network.MPD.Applicative.Database
-    ( count
+    ( albumArt
+    , count
     , find
     , findAdd
     , list
@@ -36,6 +37,14 @@ import           Network.MPD.Util
 import           Network.MPD.Commands.Types
 import           Network.MPD.Applicative.Internal
 import           Network.MPD.Applicative.Util
+
+-- | Locate album art for the given song and return a chunk of an album art
+-- image file at offset 'offset'.
+albumArt :: Path -> Integer -> Command AlbumArtChunk
+albumArt uri offset = Command p ["albumart" <@> uri <++> offset]
+    where
+        p :: Parser AlbumArtChunk
+        p = liftParser parseAlbumArtChunk
 
 -- | Get a count of songs and their total playtime that exactly match the
 -- query.

@@ -115,6 +115,9 @@ instance Arbitrary DateString where
         (y,m,d) <- three (positive :: Gen Integer)
         return . DS . UTF8.fromString . concat . intersperse "-" $ map show [y,m,d]
 
+instance Arbitrary AlbumArtChunk where
+    arbitrary = liftM2 AlbumArtChunk arbitrary arbitrary
+
 instance Arbitrary Count where
     arbitrary = liftM2 Count arbitrary arbitrary
 

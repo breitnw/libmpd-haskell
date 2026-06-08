@@ -13,7 +13,8 @@ The music database.
 -}
 
 module Network.MPD.Commands.Database
-    ( count
+    ( albumArt
+    , count
     , find
     , findAdd
     , list
@@ -33,6 +34,11 @@ import qualified Network.MPD.Applicative.Database as A
 import           Network.MPD.Commands.Query
 import           Network.MPD.Commands.Types
 import           Network.MPD.Core
+
+-- | Locate album art for the given song and return a chunk of an album art
+-- image file at offset 'offset'.
+albumArt :: MonadMPD m => Path -> Integer -> m AlbumArtChunk
+albumArt uri = A.runCommand . A.albumArt uri
 
 -- | Count the number of entries matching a query.
 count :: MonadMPD m => Query -> m Count

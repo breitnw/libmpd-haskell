@@ -13,6 +13,20 @@ main = hspec spec
 
 spec :: Spec
 spec = do
+    describe "albumArt" $ do
+        it "returns a chunk of the album artwork" $ do
+            albumArt "Bar.ogg" 0
+                `with` [("albumart \"Bar.ogg\" 0"
+                       , Right "size: 64\nbinary: 6\nfoobar\nOK")]
+                `shouldBe` Right (AlbumArtChunk 64 "foobar")
+
+    describe "albumArt" $ do
+        it "returns a chunk of the album artwork at an offset" $ do
+            albumArt "Bar.ogg" 3
+                `with` [("albumart \"Bar.ogg\" 3"
+                       , Right "size: 64\nbinary: 6\nbarbaz\nOK")]
+                `shouldBe` Right (AlbumArtChunk 64 "barbaz")
+
     describe "count" $ do
         it "returns a count of entries matching a query" $ do
             count (Title =? "Foo")

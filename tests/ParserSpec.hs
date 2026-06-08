@@ -28,6 +28,9 @@ spec = do
     describe "parseIso8601" $ do
         prop "parses dates in ISO8601 format" prop_parseIso8601
 
+    describe "parseAlbumArtChunk" $ do
+        prop "parses album art chunks" prop_parseAlbumArtChunk
+
     describe "parseCount" $ do
         prop "parses counts" prop_parseCount
 
@@ -45,6 +48,9 @@ spec = do
 -- this property.
 prop_parseIso8601 :: UTCTime -> Expectation
 prop_parseIso8601 t = Just t `shouldBe` (parseIso8601 . UTF8.fromString . formatIso8601) t
+
+prop_parseAlbumArtChunk :: AlbumArtChunk -> Expectation
+prop_parseAlbumArtChunk aac = Right aac `shouldBe` (parseAlbumArtChunk . toEntries . UTF8.fromString . unparse) aac
 
 prop_parseCount :: Count -> Expectation
 prop_parseCount c = Right c `shouldBe` (parseCount . toEntries . UTF8.fromString . unparse) c
