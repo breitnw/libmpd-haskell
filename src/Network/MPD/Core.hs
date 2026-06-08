@@ -206,7 +206,7 @@ mpdSend str = send' `catchError` handler
                   = do
                       bytes <- B.hGet handle nBytes
                       _     <- B.hGetLine handle -- newline after the byte string
-                      return (Bytes bytes:acc)
+                      getLines handle (Bytes bytes:acc)
                   | "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l = (return . reverse) (Text l:acc)
                   | otherwise = getLines handle (Text l:acc)
             action
