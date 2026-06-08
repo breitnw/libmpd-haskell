@@ -202,7 +202,7 @@ mpdSend str = send' `catchError` handler
             l <- B.hGetLine handle
             let action
                   | ("binary", nBytesStr) <- toAssoc (Text l)
-                  , Just nBytes <- readMaybe (UTF8.toString nBytesStr)
+                  , Just nBytes <- parseNum nBytesStr
                   = do
                       bytes <- B.hGet handle nBytes
                       _     <- B.hGetLine handle -- newline after the byte string

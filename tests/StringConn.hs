@@ -20,11 +20,10 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Network.MPD.Core
 import           Network.MPD.Core.Class
-import           Network.MPD.Util (toAssoc, breakChar)
+import           Network.MPD.Util
 
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8 as UTF8
-import           Text.Read (readMaybe)
 import           Control.Arrow (second)
 
 -- | An expected request.
@@ -68,7 +67,7 @@ instance MonadMPD StringMPD where
 toEntries :: B.ByteString -> [ResponseEntry]
 toEntries xs | B.null xs = []
              | ("binary", nBytesStr) <- toAssoc (Text line)
-             , Just nBytes <- readMaybe (UTF8.toString nBytesStr)
+             , Just nBytes <- parseNum nBytesStr
              = let
                    (bytes, rest') = second (B.drop 1) $ B.splitAt nBytes rest
                in Bytes bytes : toEntries rest'
