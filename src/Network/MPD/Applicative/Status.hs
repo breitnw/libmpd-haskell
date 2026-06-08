@@ -28,6 +28,7 @@ import           Network.MPD.Applicative.Internal
 import           Network.MPD.Commands.Arg hiding (Command)
 import           Network.MPD.Commands.Parse
 import           Network.MPD.Commands.Types
+import           Network.MPD.Core.Class
 
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
@@ -40,7 +41,7 @@ clearError = Command emptyResponse ["clearerror"]
 currentSong :: Command (Maybe Song)
 currentSong = Command (liftParser parseMaybeSong) ["currentsong"]
 
-takeSubsystems :: [ByteString] -> Either String [Subsystem]
+takeSubsystems :: [ResponseEntry] -> Either String [Subsystem]
 takeSubsystems = mapM f . toAssocList
     where
         f :: (ByteString, ByteString) -> Either String Subsystem
@@ -84,7 +85,7 @@ status :: Command Status
 status = Command (liftParser parseStatus) ["status"]
   where
     -- Builds a 'Status' instance from an assoc. list.
-    parseStatus :: [ByteString] -> Either String Status
+    parseStatus :: [ResponseEntry] -> Either String Status
     parseStatus = foldM go def . toAssocList
         where
             go a p@(k, v) = case k of

@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses, OverloadedStrings #-}
 {-# OPTIONS_GHC -Wwarn #-}
 
 -- |
@@ -19,9 +19,13 @@ import           Control.Monad.Identity
 import           Control.Monad.Reader
 import           Control.Monad.State
 import           Network.MPD.Core
+import           Network.MPD.Core.Class
+import           Network.MPD.Util (toAssoc, breakChar)
 
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8 as UTF8
+import           Text.Read (readMaybe)
+import           Control.Arrow (second)
 
 -- | An expected request.
 type Expect = String
@@ -58,7 +62,18 @@ instance MonadMPD StringMPD where
             when (expected_request /= request)
                  (throwError . Custom $ "unexpected request: " ++ show request ++ ", expected: " ++ show expected_request)
             put rest
-            either throwError (return . B.lines . UTF8.fromString) response
+            either throwError (return . toEntries . UTF8.fromString) response
+
+-- parse a ByteString into a list of ResponseEntries (similar to in mpdSend)
+toEntries :: B.ByteString -> [ResponseEntry]
+toEntries xs | B.null xs = []
+             | ("binary", nBytesStr) <- toAssoc (Text line)
+             , Just nBytes <- readMaybe (UTF8.toString nBytesStr)
+             = let
+                   (bytes, rest') = second (B.drop 1) $ B.splitAt nBytes rest
+               in Bytes bytes : toEntries rest'
+             | otherwise = Text line:toEntries rest
+  where (line, rest) = breakChar '\n' xs
 
 testMPD :: (Eq a) => [(Expect, Response String)] -> StringMPD a -> Response a
 testMPD pairs m = testMPDWithPassword pairs "" m
