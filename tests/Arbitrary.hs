@@ -116,7 +116,7 @@ instance Arbitrary DateString where
         return . DS . UTF8.fromString . concat . intersperse "-" $ map show [y,m,d]
 
 instance Arbitrary AlbumArtChunk where
-    arbitrary = liftM2 AlbumArtChunk arbitrary arbitrary
+    arbitrary = liftM3 AlbumArtChunk arbitrary (possibly field) arbitrary
 
 instance Arbitrary Count where
     arbitrary = liftM2 Count arbitrary arbitrary

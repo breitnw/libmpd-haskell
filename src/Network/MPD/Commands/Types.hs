@@ -220,13 +220,14 @@ instance MPDArg ReplayGainMode where
 
 -- | Represents the result of running 'albumart'
 data AlbumArtChunk =
-    AlbumArtChunk { aacSize   :: Integer    -- ^ File size of the album art
-                  , aacBytes  :: ByteString -- ^ Raw bytes read
+    AlbumArtChunk { aacSize   :: Integer      -- ^ File size of the album art
+                  , aacType   :: Maybe String -- ^ The file's MIME type (optional, only valid for readPicture)
+                  , aacBytes  :: ByteString   -- ^ Raw bytes read
                   }
     deriving (Eq, Show)
 
 defaultAlbumArtChunk :: AlbumArtChunk
-defaultAlbumArtChunk = AlbumArtChunk { aacSize = 0, aacBytes = empty }
+defaultAlbumArtChunk = AlbumArtChunk { aacSize = 0, aacType = Nothing, aacBytes = empty }
 
 instance Default AlbumArtChunk where
     def = defaultAlbumArtChunk

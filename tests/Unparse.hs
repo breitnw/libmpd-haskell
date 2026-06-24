@@ -16,11 +16,13 @@ instance Unparse a => Unparse (Maybe a) where
     unparse (Just x) = unparse x
 
 instance Unparse AlbumArtChunk where
-    unparse aac = unlines
-                  [ "size: "   ++ show (aacSize aac)
-                  , "binary: " ++ show (B.length (aacBytes aac))
-                  , UTF8.toString $ aacBytes aac
-                  ]
+    unparse aac =
+      let ty = maybe [] (\t -> ["type: " ++ t]) (aacType aac)
+      in unlines $ ty 
+                 ++ [ "size: "   ++ show (aacSize aac)
+                    , "binary: " ++ show (B.length (aacBytes aac))
+                    , UTF8.toString $ aacBytes aac
+                    ]
 
 instance Unparse Count where
     unparse x = unlines

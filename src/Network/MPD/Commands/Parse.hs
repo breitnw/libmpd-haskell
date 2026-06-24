@@ -29,6 +29,7 @@ parseAlbumArtChunk = foldM f def . toAssocList
     where
         f a ("size", x)      = return $ parse parseNum
                                (\x' -> a {aacSize = x'}) a x
+        f a ("type", x)      = return $ a {aacType = Just $ UTF8.toString x}
         f a ("binary", x)    = return $ a {aacBytes = x}
         f _ x                = Left $ show x
 

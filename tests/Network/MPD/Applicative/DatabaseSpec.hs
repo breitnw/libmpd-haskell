@@ -18,28 +18,35 @@ spec = do
             albumArt "Bar.ogg" 0
                 `with` [("albumart \"Bar.ogg\" 0"
                        , Right "size: 64\nbinary: 6\nfoobar\nOK")]
-                `shouldBe` Right (AlbumArtChunk 64 "foobar")
+                `shouldBe` Right (AlbumArtChunk 64 Nothing "foobar")
 
     describe "albumArt" $ do
         it "returns a chunk of the album artwork at an offset" $ do
             albumArt "Bar.ogg" 3
                 `with` [("albumart \"Bar.ogg\" 3"
                        , Right "size: 64\nbinary: 6\nbarbaz\nOK")]
-                `shouldBe` Right (AlbumArtChunk 64 "barbaz")
+                `shouldBe` Right (AlbumArtChunk 64 Nothing "barbaz")
 
     describe "readPicture" $ do
         it "returns a chunk of the album artwork" $ do
             albumArt "Bar.ogg" 0
                 `with` [("albumart \"Bar.ogg\" 0"
                        , Right "size: 64\nbinary: 6\nfoobar\nOK")]
-                `shouldBe` Right (AlbumArtChunk 64 "foobar")
+                `shouldBe` Right (AlbumArtChunk 64 Nothing "foobar")
 
     describe "readPicture" $ do
         it "returns a chunk of the album artwork at an offset" $ do
             albumArt "Bar.ogg" 3
                 `with` [("albumart \"Bar.ogg\" 3"
                        , Right "size: 64\nbinary: 6\nbarbaz\nOK")]
-                `shouldBe` Right (AlbumArtChunk 64 "barbaz")
+                `shouldBe` Right (AlbumArtChunk 64 Nothing "barbaz")
+                
+    describe "readPicture" $ do
+        it "returns the MIME type if it can be determined" $ do
+            albumArt "Bar.ogg" 3
+                `with` [("albumart \"Bar.ogg\" 3"
+                       , Right "size: 64\ntype: image/jpeg\nbinary: 6\nbarbaz\nOK")]
+                `shouldBe` Right (AlbumArtChunk 64 (Just "image/jpeg") "barbaz")
 
     describe "count" $ do
         it "returns a count of entries matching a query" $ do
