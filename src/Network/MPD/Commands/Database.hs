@@ -37,19 +37,24 @@ import           Network.MPD.Commands.Types
 import           Network.MPD.Core
 
 -- | Locate album art for the given song and return a chunk of an album art
--- image file at offset 'offset'.
+-- image file at an offset.
 --
 -- This is currently implemented by searching the directory the file resides in
--- for a file called cover.png, cover.jpg, cover.jxl, or cover.webp.
-albumArt :: MonadMPD m => Path -> Integer -> m AlbumArtChunk
+-- for a file called cover.png, cover.jpg, cover.jxl, or cover.webp. If there is
+-- no artwork file present, throws 'FileNotFound'.
+albumArt :: MonadMPD m => Path    -- ^ Path of the song to locate album art for.
+                       -> Integer -- ^ Byte offset of the beginning of the chunk.
+                       -> m AlbumArtChunk
 albumArt uri = A.runCommand . A.albumArt uri
 
--- | Locate a picture for the given song and return a chunk of the image file at
--- offset 'offset'.
+-- | Locate embedded album art for the given song and return a chunk of the
+-- album art at an offset.
 --
 -- This is usually implemented by reading embedded pictures from binary tags
--- (e.g. ID3v2’s APIC tag).
-readPicture :: MonadMPD m => Path -> Integer -> m AlbumArtChunk
+-- (e.g. ID3v2’s APIC tag). If there is no artwork tag present, returns 'Nothing'.
+readPicture :: MonadMPD m => Path    -- ^ Path of the song to locate album art for. 
+                          -> Integer -- ^ Byte offset of the beginning of the chunk.
+                          -> m (Maybe AlbumArtChunk)
 readPicture uri = A.runCommand . A.readPicture uri
 
 -- | Count the number of entries matching a query.

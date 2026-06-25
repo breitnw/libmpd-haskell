@@ -218,10 +218,10 @@ instance MPDArg ReplayGainMode where
     prep AlbumMode = Args ["album"]
     prep AutoMode = Args ["auto"]
 
--- | Represents the result of running 'albumart'
+-- | A binary chunk of an album art tag or file, obtained with 'readPicture' or 'albumArt'.
 data AlbumArtChunk =
     AlbumArtChunk { aacSize   :: Integer      -- ^ File size of the album art
-                  , aacType   :: Maybe String -- ^ The file's MIME type (optional, only valid for readPicture)
+                  , aacType   :: Maybe String -- ^ The file's MIME type (optional; only valid for readPicture)
                   , aacBytes  :: ByteString   -- ^ Raw bytes read
                   }
     deriving (Eq, Show)

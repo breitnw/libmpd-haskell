@@ -23,6 +23,10 @@ import           Network.MPD.Util
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
+parseMaybeAlbumArtChunk :: [ResponseEntry] -> Either String (Maybe AlbumArtChunk)
+parseMaybeAlbumArtChunk xs | null xs   = Right Nothing
+                           | otherwise = Just <$> parseAlbumArtChunk xs
+
 -- | Builds an 'AlbumArtChunk' instance from an assoc. list.
 parseAlbumArtChunk :: [ResponseEntry] -> Either String AlbumArtChunk
 parseAlbumArtChunk = foldM f def . toAssocList
