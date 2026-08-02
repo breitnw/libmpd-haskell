@@ -28,6 +28,7 @@ module Network.MPD.Commands (
     , PlaybackState(..)
     , Subsystem(..)
     , ReplayGainMode(..)
+    , AlbumArtChunk(..)
     , Count(..)
     , LsResult(..)
     , Device(..)

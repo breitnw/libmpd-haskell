@@ -13,7 +13,9 @@ The music database.
 -}
 
 module Network.MPD.Applicative.Database
-    ( count
+    ( albumArt
+    , readPicture
+    , count
     , find
     , findAdd
     , list
@@ -36,6 +38,33 @@ import           Network.MPD.Util
 import           Network.MPD.Commands.Types
 import           Network.MPD.Applicative.Internal
 import           Network.MPD.Applicative.Util
+
+-- | Locate album art for the given song and return a chunk of an album art
+-- image file at an offset.
+--
+-- This is currently implemented by searching the directory the file resides in
+-- for a file called cover.png, cover.jpg, cover.jxl, or cover.webp. If there is
+-- no artwork file present, the returned command will produce 'FileNotFound'.
+albumArt :: Path    -- ^ Path of the song to locate album art for.
+         -> Integer -- ^ Byte offset of the beginning of the chunk.
+         -> Command AlbumArtChunk
+albumArt uri offset = Command p ["albumart" <@> uri <++> offset]
+    where
+        p :: Parser AlbumArtChunk
+        p = liftParser parseAlbumArtChunk
+
+-- | Locate a picture for the given song and return a chunk of the image file at
+-- offset 'offset'.
+--
+-- This is usually implemented by reading embedded pictures from binary tags
+-- (e.g. ID3v2’s APIC tag). If there is no artwork tag present, returns 'Nothing'.
+readPicture :: Path    -- ^ Path of the song to locate album art for.
+            -> Integer -- ^ Byte offset of the beginning of the chunk.
+            -> Command (Maybe AlbumArtChunk)
+readPicture uri offset = Command p ["readpicture" <@> uri <++> offset]
+    where
+        p :: Parser (Maybe AlbumArtChunk)
+        p = liftParser parseMaybeAlbumArtChunk
 
 -- | Get a count of songs and their total playtime that exactly match the
 -- query.

@@ -13,7 +13,9 @@ The music database.
 -}
 
 module Network.MPD.Commands.Database
-    ( count
+    ( albumArt
+    , readPicture
+    , count
     , find
     , findAdd
     , list
@@ -33,6 +35,27 @@ import qualified Network.MPD.Applicative.Database as A
 import           Network.MPD.Commands.Query
 import           Network.MPD.Commands.Types
 import           Network.MPD.Core
+
+-- | Locate album art for the given song and return a chunk of an album art
+-- image file at an offset.
+--
+-- This is currently implemented by searching the directory the file resides in
+-- for a file called cover.png, cover.jpg, cover.jxl, or cover.webp. If there is
+-- no artwork file present, throws 'FileNotFound'.
+albumArt :: MonadMPD m => Path    -- ^ Path of the song to locate album art for.
+                       -> Integer -- ^ Byte offset of the beginning of the chunk.
+                       -> m AlbumArtChunk
+albumArt uri = A.runCommand . A.albumArt uri
+
+-- | Locate embedded album art for the given song and return a chunk of the
+-- album art at an offset.
+--
+-- This is usually implemented by reading embedded pictures from binary tags
+-- (e.g. ID3v2’s APIC tag). If there is no artwork tag present, returns 'Nothing'.
+readPicture :: MonadMPD m => Path    -- ^ Path of the song to locate album art for. 
+                          -> Integer -- ^ Byte offset of the beginning of the chunk.
+                          -> m (Maybe AlbumArtChunk)
+readPicture uri = A.runCommand . A.readPicture uri
 
 -- | Count the number of entries matching a query.
 count :: MonadMPD m => Query -> m Count

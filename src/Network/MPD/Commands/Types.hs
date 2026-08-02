@@ -23,6 +23,7 @@ module Network.MPD.Commands.Types
     , PlaybackState(..)
     , Subsystem(..)
     , ReplayGainMode(..)
+    , AlbumArtChunk(..)
     , Count(..)
     , LsResult(..)
     , Device(..)
@@ -51,7 +52,7 @@ import           Data.String
 
 import           Data.Text   (Text)
 import qualified Data.Text.Encoding as Text
-import           Data.ByteString (ByteString)
+import           Data.ByteString (ByteString, empty)
 import qualified Data.ByteString.UTF8 as UTF8
 
 -- The purpose of this class is to allow users to choose the optimal
@@ -216,6 +217,20 @@ instance MPDArg ReplayGainMode where
     prep TrackMode = Args ["track"]
     prep AlbumMode = Args ["album"]
     prep AutoMode = Args ["auto"]
+
+-- | A binary chunk of an album art tag or file, obtained with 'readPicture' or 'albumArt'.
+data AlbumArtChunk =
+    AlbumArtChunk { aacSize   :: Integer      -- ^ File size of the album art
+                  , aacType   :: Maybe String -- ^ The file's MIME type (optional; only valid for readPicture)
+                  , aacBytes  :: ByteString   -- ^ Raw bytes read
+                  }
+    deriving (Eq, Show)
+
+defaultAlbumArtChunk :: AlbumArtChunk
+defaultAlbumArtChunk = AlbumArtChunk { aacSize = 0, aacType = Nothing, aacBytes = empty }
+
+instance Default AlbumArtChunk where
+    def = defaultAlbumArtChunk
 
 -- | Represents the result of running 'count'.
 data Count =

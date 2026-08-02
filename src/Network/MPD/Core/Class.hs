@@ -18,6 +18,10 @@ import           Control.Monad.Except (MonadError)
 
 type Password = String
 
+-- | A line of a MPD response. May either be a regular string or a sequence of
+--   raw bytes.
+data ResponseEntry = Text ByteString | Bytes ByteString deriving (Eq, Show)
+
 -- | A typeclass to allow for multiple implementations of a connection
 --   to an MPD server.
 class (Monad m, MonadError MPDError m) => MonadMPD m where
@@ -26,7 +30,7 @@ class (Monad m, MonadError MPDError m) => MonadMPD m where
     -- | Close the connection.
     close :: m ()
     -- | Send a string to the server and return its response.
-    send  :: String -> m [ByteString]
+    send  :: String -> m [ResponseEntry]
     -- | Produce a password to send to the server should it ask for
     --   one.
     getPassword :: m Password

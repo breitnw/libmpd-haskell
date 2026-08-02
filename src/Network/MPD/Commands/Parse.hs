@@ -12,6 +12,8 @@ module Network.MPD.Commands.Parse where
 
 import           Network.MPD.Commands.Types
 
+import           Network.MPD.Core.Class
+
 import           Control.Monad
 import           Control.Monad.Except
 import           Data.Maybe (fromMaybe)
@@ -21,8 +23,22 @@ import           Network.MPD.Util
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
+parseMaybeAlbumArtChunk :: [ResponseEntry] -> Either String (Maybe AlbumArtChunk)
+parseMaybeAlbumArtChunk xs | null xs   = Right Nothing
+                           | otherwise = Just <$> parseAlbumArtChunk xs
+
+-- | Builds an 'AlbumArtChunk' instance from an assoc. list.
+parseAlbumArtChunk :: [ResponseEntry] -> Either String AlbumArtChunk
+parseAlbumArtChunk = foldM f def . toAssocList
+    where
+        f a ("size", x)      = return $ parse parseNum
+                               (\x' -> a {aacSize = x'}) a x
+        f a ("type", x)      = return $ a {aacType = Just $ UTF8.toString x}
+        f a ("binary", x)    = return $ a {aacBytes = x}
+        f _ x                = Left $ show x
+
 -- | Builds a 'Count' instance from an assoc. list.
-parseCount :: [ByteString] -> Either String Count
+parseCount :: [ResponseEntry] -> Either String Count
 parseCount = foldM f def . toAssocList
         where f :: Count -> (ByteString, ByteString) -> Either String Count
               f a ("songs", x)    = return $ parse parseNum
@@ -32,7 +48,7 @@ parseCount = foldM f def . toAssocList
               f _ x               = Left $ show x
 
 -- | Builds a list of 'Device' instances from an assoc. list
-parseOutputs :: [ByteString] -> Either String [Device]
+parseOutputs :: [ResponseEntry] -> Either String [Device]
 parseOutputs = mapM (foldM f def)
              . splitGroups ["outputid"]
              . toAssocList
@@ -44,7 +60,7 @@ parseOutputs = mapM (foldM f def)
           f _ x                    = Left $ show x
 
 -- | Builds a 'Stats' instance from an assoc. list.
-parseStats :: [ByteString] -> Either String Stats
+parseStats :: [ResponseEntry] -> Either String Stats
 parseStats = foldM f def . toAssocList
     where
         f a ("artists", x)     = return $ parse parseNum
@@ -63,7 +79,7 @@ parseStats = foldM f def . toAssocList
                                  (\x' -> a { stsDbUpdate = x' }) a x
         f _ x = Left $ show x
 
-parseMaybeSong :: [ByteString] -> Either String (Maybe Song)
+parseMaybeSong :: [ResponseEntry] -> Either String (Maybe Song)
 parseMaybeSong xs | null xs   = Right Nothing
                   | otherwise = Just <$> (parseSong . toAssocList) xs
 

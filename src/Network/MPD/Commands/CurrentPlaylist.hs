@@ -46,6 +46,7 @@ import           Network.MPD.Commands.Query
 import           Network.MPD.Commands.Types
 import           Network.MPD.Core
 import           Network.MPD.Util
+import           Network.MPD.Core.Class
 
 import           Control.Monad.Except (throwError)
 
@@ -96,7 +97,8 @@ moveId i = A.runCommand . A.moveId i
 -- instead.
 playlist :: MonadMPD m => m [(Position, Path)]
 playlist = mapM f =<< getResponse "playlist"
-    where f s | (pos, name) <- breakChar ':' s
+    where f s | (Text s') <- s
+              , (pos, name) <- breakChar ':' s'
               , Just pos'   <- parseNum pos
               = return (pos', Path name)
               | otherwise = throwError . Unexpected $ show s

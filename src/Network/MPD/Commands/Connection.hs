@@ -13,6 +13,7 @@ Connection settings.
 module Network.MPD.Commands.Connection
     ( password
     , ping
+    , binaryLimit
     ) where
 
 import qualified Network.MPD.Applicative.Internal as A
@@ -29,3 +30,7 @@ password = A.runCommand . A.password
 -- | Check that the server is still responding.
 ping :: MonadMPD m => m ()
 ping = A.runCommand A.ping
+
+-- | Set the maximum binary response size (in bytes) for the current connection.
+binaryLimit :: MonadMPD m => Integer -> m ()
+binaryLimit = A.runCommand . A.binaryLimit

@@ -52,6 +52,7 @@ import Network.Socket
 import           System.IO (Handle, hPutStrLn, hReady, hClose, hFlush)
 import           System.IO.Error (isEOFError, tryIOError, ioeGetErrorType)
 import           Text.Printf (printf)
+import           Text.Read (readMaybe)
 import qualified GHC.IO.Exception as GE
 
 import qualified Prelude
@@ -140,7 +141,7 @@ mpdOpen = MPD $ do
             `catchAny` const (return Nothing)
         checkConn = do
             singleMsg <- send ""
-            let [msg] = singleMsg
+            let [Text msg] = singleMsg
             if "OK MPD" `isPrefixOf` msg
                 then MPD $ checkVersion $ parseVersion msg
                 else return False
@@ -180,14 +181,14 @@ mpdClose =
             | isEOFError err = return Nothing
             | otherwise      = (return . Just . ConnectionError) err
 
-mpdSend :: String -> MPD [ByteString]
+mpdSend :: String -> MPD [ResponseEntry]
 mpdSend str = send' `catchError` handler
     where
         handler err
           | ConnectionError e <- err, isRetryable e = mpdOpen >> send'
           | otherwise = throwError err
 
-        send' :: MPD [ByteString]
+        send' :: MPD [ResponseEntry]
         send' = MPD $ gets stHandle >>= maybe (throwError NoMPD) go
 
         go handle = (liftIO . tryIOError $ do
@@ -196,12 +197,19 @@ mpdSend str = send' `catchError` handler
                 >>= either (\err -> modify (\st -> st { stHandle = Nothing })
                                  >> throwError (ConnectionError err)) return
 
-        getLines :: Handle -> [ByteString] -> IO [ByteString]
+        getLines :: Handle -> [ResponseEntry] -> IO [ResponseEntry]
         getLines handle acc = do
             l <- B.hGetLine handle
-            if "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l
-                then (return . reverse) (l:acc)
-                else getLines handle (l:acc)
+            let action
+                  | ("binary", nBytesStr) <- toAssoc (Text l)
+                  , Just nBytes <- parseNum nBytesStr
+                  = do
+                      bytes <- B.hGet handle nBytes
+                      _     <- B.hGetLine handle -- newline after the byte string
+                      getLines handle (Bytes bytes:acc)
+                  | "OK" `isPrefixOf` l || "ACK" `isPrefixOf` l = (return . reverse) (Text l:acc)
+                  | otherwise = getLines handle (Text l:acc)
+            action
 
 -- | Re-connect and retry for these Exceptions.
 isRetryable :: E.IOException -> Bool
@@ -221,7 +229,7 @@ kill :: (MonadMPD m) => m ()
 kill = send "kill" >> return ()
 
 -- | Send a command to the MPD server and return the result.
-getResponse :: (MonadMPD m) => String -> m [ByteString]
+getResponse :: (MonadMPD m) => String -> m [ResponseEntry]
 getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
     where
         sendpw e@(ACK Auth _) = do
@@ -233,11 +241,11 @@ getResponse cmd = (send cmd >>= parseResponse) `catchError` sendpw
             throwError e
 
 -- Consume response and return a Response.
-parseResponse :: (MonadError MPDError m) => [ByteString] -> m [ByteString]
+parseResponse :: (MonadError MPDError m) => [ResponseEntry] -> m [ResponseEntry]
 parseResponse xs
-    | null xs                    = throwError $ NoMPD
-    | "ACK" `isPrefixOf` x       = throwError $ parseAck x
-    | otherwise                  = return $ Prelude.takeWhile ("OK" /=) xs
+    | null xs                               = throwError $ NoMPD
+    | Text x' <- x, "ACK" `isPrefixOf` x'   = throwError $ parseAck x'
+    | otherwise                             = return $ Prelude.takeWhile (Text "OK" /=) xs
     where
         x = head xs
 

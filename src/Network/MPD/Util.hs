@@ -25,6 +25,8 @@ import           Data.ByteString.Char8 (break, drop, dropWhile, ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 import           Data.String
 
+import           Network.MPD.Core.Class
+
 import           Control.Applicative
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
@@ -96,10 +98,12 @@ parseTriple c f s = let (u, u') = breakChar c s
         _                        -> Nothing
 
 -- Break a string into a key-value pair, separating at the first ':'.
-toAssoc :: ByteString -> (ByteString, ByteString)
-toAssoc = second (dropWhile (== ' ') . drop 1) . break (== ':')
+-- For binary entries, the key "binary" is used.
+toAssoc :: ResponseEntry -> (ByteString, ByteString)
+toAssoc (Text x)  = second (dropWhile (== ' ') . drop 1) . break (== ':') $ x
+toAssoc (Bytes x) = ("binary", x)
 
-toAssocList :: [ByteString] -> [(ByteString, ByteString)]
+toAssocList :: [ResponseEntry] -> [(ByteString, ByteString)]
 toAssocList = map toAssoc
 
 -- Takes an association list with recurring keys and groups each cycle of keys

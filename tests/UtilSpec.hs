@@ -15,6 +15,7 @@ import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.UTF8 as UTF8
 
 import           Network.MPD.Util
+import           Network.MPD.Core.Class
 
 main :: IO ()
 main = hspec spec
@@ -62,7 +63,7 @@ prop_toAssoc_rev :: AssocString -> Bool
 prop_toAssoc_rev x = k == k' && v == v'
     where
         AS str k v = x
-        (k',v') = toAssoc str
+        (k',v') = toAssoc (Text str)
 
 prop_parseBool_rev :: BoolString -> Bool
 prop_parseBool_rev (BS x) = showBool (fromJust $ parseBool x) == x

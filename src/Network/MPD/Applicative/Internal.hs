@@ -32,16 +32,16 @@ module Network.MPD.Applicative.Internal
     ) where
 
 import           Control.Monad
-import           Data.ByteString.Char8 (ByteString)
 
 import           Network.MPD.Core hiding (getResponse)
+import           Network.MPD.Core.Class
 import qualified Network.MPD.Core as Core
 import           Control.Monad.Except
 import qualified Control.Monad.Fail as Fail
 
 -- | A line-oriented parser that returns a value along with any remaining input.
 newtype Parser a
-    = Parser { runParser :: [ByteString] -> Either String (a, [ByteString]) }
+    = Parser { runParser :: [ResponseEntry] -> Either String (a, [ResponseEntry]) }
       deriving Functor
 
 instance Monad Parser where
@@ -56,13 +56,13 @@ instance Applicative Parser where
     (<*>) = ap
 
 -- | Convert a regular parser.
-liftParser :: ([ByteString] -> Either String a) -> Parser a
-liftParser p = Parser $ \input -> case break (== "list_OK") input of
+liftParser :: ([ResponseEntry] -> Either String a) -> Parser a
+liftParser p = Parser $ \input -> case break (== Text "list_OK") input of
     (xs, ys) -> fmap (, drop 1 ys) (p xs)
 
 -- | Return everything until the next "list_OK".
-getResponse :: Parser [ByteString]
-getResponse = Parser $ \input -> case break (== "list_OK") input of
+getResponse :: Parser [ResponseEntry]
+getResponse = Parser $ \input -> case break (== Text "list_OK") input of
     (xs, ys) -> Right (xs, drop 1 ys)
 
 -- | For commands returning an empty response.
@@ -73,7 +73,7 @@ emptyResponse = do
         unexpected r
 
 -- | Fail with unexpected response.
-unexpected :: [ByteString] -> Parser a
+unexpected :: [ResponseEntry] -> Parser a
 unexpected = fail . ("unexpected Response: " ++) . show
 
 -- | A compound command, comprising a parser for the responses and a
