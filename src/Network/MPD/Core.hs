@@ -14,7 +14,7 @@ module Network.MPD.Core (
     -- * Classes
     MonadMPD(..),
     -- * Data types
-    MPD, MPDError(..), ACKType(..), Response, Host, Port, Password,
+    MPD, MPDError(..), ACKType(..), Response, Host, Port, Password, ResponseEntry(..),
     -- * Running
     withMPDEx,
     -- * Interacting
