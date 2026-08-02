@@ -136,7 +136,7 @@ mpdOpen = MPD $ do
         getAddr host port = getAddrInfo (Just defaultHints) (Just host) (Just $ show port)
 
         safeConnectTo (sock,addr) =
-            (connect sock addr) >> (Just <$> socketToHandle sock ReadWriteMode)
+            ((connect sock addr) >> (Just <$> socketToHandle sock ReadWriteMode))
             `catchAny` const (return Nothing)
         checkConn = do
             singleMsg <- send ""
